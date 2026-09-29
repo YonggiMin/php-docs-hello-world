@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>M365 File Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Azure App Service + Microsoft Entra ID</p>
+        <h1>M365 File Portal</h1>
+        <p class="muted">로그인 사용자: <strong>{{ user.name }}</strong></p>
+      </div>
+      <a class="secondary" href="/.auth/logout?post_logout_redirect_uri=/">로그아웃</a>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="notice {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if error %}
+      <section class="notice error">
+        <strong>Storage 연결 오류</strong><br>{{ error }}
+      </section>
+    {% endif %}
+
+    <section class="card">
+      <h2>파일 업로드</h2>
+      <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">업로드</button>
+      </form>
+      <p class="hint">최대 {{ max_upload_mb }}MB, 허용 형식: {{ allowed_extensions | join(', ') }}</p>
+    </section>
+
+    <section class="card">
+      <h2>내 파일</h2>
+      {% if files %}
+        <div class="file-list">
+          {% for file in files %}
+            <div class="file-row">
+              <div>
+                <strong>{{ file.name }}</strong>
+                <span>{{ "%.1f"|format(file.size / 1024) }} KB · {{ file.modified.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+              <div class="actions">
+                <a href="{{ url_for('download', filename=file.name) }}">다운로드</a>
+                <form action="{{ url_for('delete', filename=file.name) }}" method="post" onsubmit="return confirm('파일을 삭제할까요?');">
+                  <button class="danger" type="submit">삭제</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">업로드된 파일이 없습니다.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
