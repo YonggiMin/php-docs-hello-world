@@ -60,4 +60,3 @@ jobs:
           app-name: yomim365
           slot-name: Production
           package: .
-`
